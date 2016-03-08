@@ -4,12 +4,20 @@ package com.example.jojo.appstartguide;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,11 +31,20 @@ public class MainActivity extends Activity implements View.OnClickListener, View
     //底部小点图片
     private ImageView[]  dots;
     private int currentIndex;
+    private static final String IMG_URL= "http://121.42.187.192/images/bgimage.png";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //派生到我的代码片
+
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectDiskReads().detectDiskWrites().detectNetwork()
+                .penaltyLog().build());
+        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                .detectLeakedSqlLiteObjects().detectLeakedClosableObjects()
+                .penaltyLog().penaltyDeath().build());
         //判断程序是否第一次在本手机上运行
         isFirstRun();
         //初始化viewPager的各个界面
@@ -39,6 +56,7 @@ public class MainActivity extends Activity implements View.OnClickListener, View
     private void initDots() {
         LinearLayout ll = (LinearLayout) findViewById(R.id.ll);
         dots = new ImageView[pics.length];
+
 
         //循环去的小点图片
         for (int i = 0; i < pics.length; i++) {
@@ -52,15 +70,39 @@ public class MainActivity extends Activity implements View.OnClickListener, View
         dots[currentIndex].setEnabled(false);
     }
 
+
+    private Bitmap getBitmapFromUrl(String imgUrl) {
+        URL url;
+        Bitmap bitmap = null;
+        try {
+            url = new URL(imgUrl);
+            InputStream is = url.openConnection().getInputStream();
+            BufferedInputStream bis = new BufferedInputStream(is);
+            bitmap = BitmapFactory.decodeStream(bis);
+            bis.close();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bitmap;
+    }
+
+
     private void initViewList() {
         views = new ArrayList<View>();
+
         LinearLayout.LayoutParams mParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
         //初始化引导图片列表
+        Bitmap bitmap = getBitmapFromUrl(IMG_URL);
+
         for (int i = 0; i < pics.length; i++) {
             ImageView iv =  new ImageView(this);
             iv.setLayoutParams(mParams);
-            iv.setImageResource(pics[i]);
+            //iv.setImageResource(pics[i]);
+            iv.setImageBitmap(bitmap);
+            iv.invalidate();
             views.add(iv);
         }
         vp = (ViewPager) findViewById(R.id.viewpager) ;
@@ -72,6 +114,11 @@ public class MainActivity extends Activity implements View.OnClickListener, View
     }
 
     private void isFirstRun() {
+        preferences = getSharedPreferences("count", MODE_WORLD_READABLE);
+
+    }
+
+    /*private void isFirstRun() {
         preferences = getSharedPreferences("count", MODE_WORLD_READABLE) ;
         int count = preferences.getInt("count", 0);
 
@@ -87,7 +134,7 @@ public class MainActivity extends Activity implements View.OnClickListener, View
         editor.putInt("count", ++count);
         //提交修改
         editor.commit();
-    }
+    }*/
 
 
 
