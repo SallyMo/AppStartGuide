@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -56,7 +57,7 @@ public class MainActivity extends Activity implements View.OnClickListener, View
     private void initDots() {
         LinearLayout ll = (LinearLayout) findViewById(R.id.ll);
         dots = new ImageView[pics.length];
-
+        Log.d("liangz","initDots............");
 
         //循环去的小点图片
         for (int i = 0; i < pics.length; i++) {
@@ -91,7 +92,7 @@ public class MainActivity extends Activity implements View.OnClickListener, View
 
     private void initViewList() {
         views = new ArrayList<View>();
-
+        Log.d("liangz","initViewList..............");
         LinearLayout.LayoutParams mParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
         //初始化引导图片列表
@@ -100,8 +101,13 @@ public class MainActivity extends Activity implements View.OnClickListener, View
         for (int i = 0; i < pics.length; i++) {
             ImageView iv =  new ImageView(this);
             iv.setLayoutParams(mParams);
-            //iv.setImageResource(pics[i]);
-            iv.setImageBitmap(bitmap);
+            if (bitmap != null) {
+                iv.setImageBitmap(bitmap);
+            } else {
+                iv.setImageResource(pics[i]);
+            }
+
+            Log.d("liangz","bitmap="+bitmap);
             iv.invalidate();
             views.add(iv);
         }
@@ -115,7 +121,17 @@ public class MainActivity extends Activity implements View.OnClickListener, View
 
     private void isFirstRun() {
         preferences = getSharedPreferences("count", MODE_WORLD_READABLE);
+        int cout = preferences.getInt("count",0);
 
+        if (cout != 0) {
+            Intent mIntent = new Intent();
+            mIntent.setClass(getApplicationContext(),TwoPageActivity.class);
+            startActivity(mIntent);
+            this.finish();
+        }
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt("count", ++cout);
+        editor.commit();
     }
 
     /*private void isFirstRun() {
